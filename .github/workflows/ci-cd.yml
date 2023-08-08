@@ -15,7 +15,7 @@ jobs:
       - uses: oprypin/find-latest-tag@v1
         id: previoustag
         with:
-          repository: Warfront1/CMOS
+          repository: Elite-Scripts/CMOS
           releases-only: true
 
       - name: Get next minor version
