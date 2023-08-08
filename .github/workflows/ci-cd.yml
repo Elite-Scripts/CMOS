@@ -1,0 +1,70 @@
+name: CMOS CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build_container_and_upload_to_docker_hub:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: oprypin/find-latest-tag@v1
+        id: previoustag
+        with:
+          repository: Warfront1/CMOS
+          releases-only: true
+
+      - name: Get next minor version
+        id: semver
+        uses: 'WyriHaximus/github-action-next-semvers@v1'
+        with:
+          version: ${{ steps.previoustag.outputs.tag }}
+
+      - id: dcp
+        name: Pull the latest image to build
+        run: docker-compose pull
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+
+      - id: bp1
+        name: Build CMOS
+        run: |
+          echo ${{ steps.aar1.outputs.automatic_release_tag }}
+          export TAG=${{ steps.aar1.outputs.automatic_releases_tag }}
+          docker-compose build
+          export TAG=latest
+          docker-compose build
+          docker-compose up
+          echo ${{ steps.semver.outputs.patch }} > .version
+          echo "TODO test layer caching, remove this"
+
+      - id: tbo
+        name: Tag Build Output
+        run: |
+          pwd
+          cd build/cmos/
+          ls -a
+          mv -f CMOS.iso CMOS_${{ steps.semver.outputs.patch }}.iso
+          mv -f CMOS_ISO_Contents.zip CMOS_ISO_Contents_${{ steps.semver.outputs.patch }}.zip
+
+      - id: aar1
+        uses: "marvinpinto/action-automatic-releases@v1.2.1"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: ${{ steps.semver.outputs.patch }}
+          prerelease: false
+          title: ${{ steps.semver.outputs.patch }}
+          files: |
+            build/cmos/CMOS_${{ steps.semver.outputs.patch }}.iso
+            build/cmos/CMOS_ISO_Contents_${{ steps.semver.outputs.patch }}.zip
+
+      - id: c1
+        name: Cleanup
+        run: |
+          ls -a /home/runner/work/CMOS/CMOS/build/cmos/
+          rm -r /home/runner/work/CMOS/CMOS/build/cmos/*

@@ -1,0 +1,9 @@
+version: '3.1'
+
+services:
+  debian_build_container:
+    build:
+      context: .
+      dockerfile: ./src/main/docker/Dockerfile
+    volumes:
+      - ./build/cmos:/root/mkiso/build/
