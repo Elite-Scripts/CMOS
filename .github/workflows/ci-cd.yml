@@ -50,7 +50,9 @@ jobs:
           cd build/cmos/
           ls -a
           mv -f CMOS.iso CMOS_${{ steps.semver.outputs.patch }}.iso
-          mv -f CMOS_ISO_Contents.zip CMOS_ISO_Contents_${{ steps.semver.outputs.patch }}.zip
+          # mv -f CMOS_ISO_Contents.zip CMOS_ISO_Contents_${{ steps.semver.outputs.patch }}.zip
+          ln -s CMOS_ISO_Contents.zip CMOS_ISO_Contents_${{ steps.semver.outputs.patch }}.zip
+          ln -s CMOS_ISO_Contents.zip CMOS_ISO_Contents_${{ steps.semver.outputs.patch }}.zip1
 
       - id: aar1
         uses: "marvinpinto/action-automatic-releases@v1.2.1"
@@ -62,6 +64,7 @@ jobs:
           files: |
             build/cmos/CMOS_${{ steps.semver.outputs.patch }}.iso
             build/cmos/CMOS_ISO_Contents_${{ steps.semver.outputs.patch }}.zip
+            build/cmos/CMOS_ISO_Contents_${{ steps.semver.outputs.patch }}.zip1
 
       - id: c1
         name: Cleanup
