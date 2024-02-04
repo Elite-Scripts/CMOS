@@ -2,7 +2,7 @@ FROM debian:bullseye-20230612-slim
 
 WORKDIR /root/mkiso/
 RUN apt-get update && apt-get -y install xorriso squashfs-tools wget && \
-    wget -O slax-64bit.iso "https://ftp.linux.cz/pub/linux/slax/Slax-11.x/slax-64bit-11.6.0.iso" && \
+    wget -O slax-64bit.iso "https://ftp.linux.cz/pub/linux/slax/Slax-old/Slax-11.x/slax-64bit-11.6.0.iso" && \
     wget -O sb2dir https://sourceforge.net/projects/linux-live-slack-debian/files/Scripts/sb2dir/download && \
     wget -O dir2sb https://sourceforge.net/projects/linux-live-slack-debian/files/Scripts/dir2sb/download && \
     chmod +x ./sb2dir ./dir2sb && \
