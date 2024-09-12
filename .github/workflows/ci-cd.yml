@@ -55,6 +55,7 @@ jobs:
           ln -s CMOS_ISO_Contents.zip CMOS_ISO_Contents_${{ steps.semver.outputs.patch }}.zip1
 
       - id: aar1
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: "marvinpinto/action-automatic-releases@v1.2.1"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
