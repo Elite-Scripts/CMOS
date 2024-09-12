@@ -9,7 +9,9 @@ red=$(tput setaf 1)
 green=$(tput setaf 2)
 reset=$(tput sgr0)
 
-possible_mounts=$(lsblk -nlo NAME,RM,MOUNTPOINT --ascii | grep -v MOUNTPOINT | awk '$2 == "1" && $3 == "" {print $1}' | grep -E "1|2")
+removable_devices_1_2=$(lsblk --ascii -nlo NAME,RM,MOUNTPOINT | awk '$2 == "1" && $3 == "" {print $1}' | grep -E "1|2")
+other_unmounted_devices=$(lsblk --ascii -nlo NAME,MOUNTPOINT | awk '$2 == "" {print $1}' | grep -Ev "$(echo $removable_devices_1_2 | sed 's/ /|/g')")
+possible_mounts="$removable_devices_1_2 $other_unmounted_devices"
 counter=1
 
 generic_error_handling() {
@@ -33,7 +35,7 @@ get_iso_files() {
     else
       echo "${green}We were able to mount $device_to_mount."
       echo "Listing out the root directory of $device_to_mount.${reset}"
-      mount_file_list=$(ls $path_to_mount | grep -vE '\.(iso|zip\.00[1-9]|part[12])$' | sort | tr '\n' ' ' | tr -d '[:space:]')
+      mount_file_list=$(ls $path_to_mount | grep -vE '\.(iso|zip\.00[1-9]|part[1-9]|part[1-9][0-9])$' | sort | tr '\n' ' ' | tr -d '[:space:]')
       echo $mount_file_list
 
       if [[ "$mount_file_list" == "$target_device_root_file_list" ]] || \
@@ -43,14 +45,17 @@ get_iso_files() {
         mkdir -p /iso
         find / -name "*.iso" -exec cp {} /iso \;
         find / -name "*.001" -exec 7z x {} -o"/iso" \;
-        part1_file=$(find / -path /proc -prune -o -type f -not -name "._*" -name "*.part1" -print)
-        part2_file=$(find / -path /proc -prune -o -type f -not -name "._*" -name "*.part2" -print)
-        if [ -z "$part1_file" ]; then
-            echo "No matching part files found, skipping part file concatenation."
-        else
-            echo "${green}concatenating the following two files: $part1_file $part2_file${reset}"
-            cat $part1_file $part2_file > /iso/concatenated_iso.iso
-        fi
+        for fileNum in {1..20}
+        do
+          part_file=$(find / -path /proc -prune -o -type f -not -name "._*" -name "*.part${fileNum}" -print)
+          if [ -z "$part_file" ]; then
+            echo "No more part files found, finished concatenation."
+            break
+          else
+            echo "${green}Adding the following file to the ISO: $part_file${reset}"
+            cat $part_file >> /iso/concatenated_iso.iso
+          fi
+        done
         export target_device=$device_to_mount
         export target_device_parent_device="/dev/$(lsblk -no pkname $target_device)"
         return
