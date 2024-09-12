@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build_container_and_upload_to_docker_hub:
+  build_and_deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -26,7 +26,7 @@ jobs:
 
       - id: dcp
         name: Pull the latest image to build
-        run: docker-compose pull
+        run: docker compose pull
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
@@ -36,10 +36,10 @@ jobs:
         run: |
           echo ${{ steps.aar1.outputs.automatic_release_tag }}
           export TAG=${{ steps.aar1.outputs.automatic_releases_tag }}
-          docker-compose build
+          docker compose build
           export TAG=latest
-          docker-compose build
-          docker-compose up
+          docker compose build
+          docker compose up
           echo ${{ steps.semver.outputs.patch }} > .version
           echo "TODO test layer caching, remove this"
 
@@ -55,6 +55,7 @@ jobs:
           ln -s CMOS_ISO_Contents.zip CMOS_ISO_Contents_${{ steps.semver.outputs.patch }}.zip1
 
       - id: aar1
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: "marvinpinto/action-automatic-releases@v1.2.1"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
