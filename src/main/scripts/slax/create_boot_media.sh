@@ -11,7 +11,8 @@ reset=$(tput sgr0)
 
 removable_devices_1_2=$(lsblk --ascii -nlo NAME,RM,MOUNTPOINT | awk '$2 == "1" && $3 == "" {print $1}' | grep -E "1|2")
 other_unmounted_devices=$(lsblk --ascii -nlo NAME,MOUNTPOINT | awk '$2 == "" {print $1}' | grep -Ev "$(echo $removable_devices_1_2 | sed 's/ /|/g')")
-possible_mounts="$removable_devices_1_2 $other_unmounted_devices"
+# Using a newline instead of a regular space to concatenate values to prevent splitting issues in for loop iterations.
+possible_mounts="$removable_devices_1_2"$'\n'"$other_unmounted_devices"
 counter=1
 
 generic_error_handling() {
