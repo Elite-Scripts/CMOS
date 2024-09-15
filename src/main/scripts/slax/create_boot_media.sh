@@ -9,12 +9,6 @@ red=$(tput setaf 1)
 green=$(tput setaf 2)
 reset=$(tput sgr0)
 
-removable_devices_1_2=$(lsblk --ascii -nlo NAME,RM,MOUNTPOINT | awk '$2 == "1" && $3 == "" {print $1}' | grep -E "1|2")
-other_unmounted_devices=$(lsblk --ascii -nlo NAME,MOUNTPOINT | awk '$2 == "" {print $1}' | grep -Ev "$(echo $removable_devices_1_2 | sed 's/ /|/g')")
-# Using a newline instead of a regular space to concatenate values to prevent splitting issues in for loop iterations.
-possible_mounts="$removable_devices_1_2"$'\n'"$other_unmounted_devices"
-counter=1
-
 generic_error_handling() {
   echo "${red}Stopping this script in 1 minute${reset}"
   sleep 1m
@@ -22,10 +16,15 @@ generic_error_handling() {
 }
 
 get_iso_files() {
+  # Fetch all unmounted blockdevices, sort them by whether they're removable or not
+  possible_mounts=$(lsblk -lpJ -o NAME,RM,MOUNTPOINT | jq -r '.[] | map(select(.mountpoint == null)) | sort_by(.rm | not) | map(.name) | join("\n")')
+  counter=1
   IFS=$'\n'
+  echo "Possible mounts: $possible_mounts"
+  echo "Starting to iterate over the possible mounts..."
   for possible_mount in $possible_mounts; do
     echo $counter $possible_mount
-    device_to_mount=/dev/$possible_mount
+    device_to_mount=$possible_mount
     path_to_mount="/mount_$counter_$possible_mount"
     echo "${green}Creating the following directory and attempting to mount to it.${reset}"
     echo $path_to_mount
