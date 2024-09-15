@@ -15,6 +15,16 @@ generic_error_handling() {
   exit
 }
 
+get_top_level_device() {
+  DEVICE="$1"
+  TOP_DEVICE=$(lsblk -no pkname $DEVICE)
+  if [ -z "$TOP_DEVICE" ]; then
+    echo "The top-level device for $DEVICE is: $DEVICE"
+  else
+    echo "The top-level device for $DEVICE is: /dev/$TOP_DEVICE"
+  fi
+}
+
 get_iso_files() {
   # Fetch all unmounted blockdevices, sort them by whether they're removable or not
   possible_mounts=$(lsblk -lpJ -o NAME,RM,MOUNTPOINT | jq -r '.[] | map(select(.mountpoint == null)) | sort_by(.rm | not) | map(.name) | join("\n")')
@@ -57,7 +67,7 @@ get_iso_files() {
           fi
         done
         export target_device=$device_to_mount
-        export target_device_parent_device="/dev/$(lsblk -no pkname $target_device)"
+        export target_device_parent_device=$(get_top_level_device "$target_device")
         return
       else
         echo "${red}By comparing the file directory listing, we have determined that this isn't the correct USB.${reset}"
