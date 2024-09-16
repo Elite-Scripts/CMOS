@@ -16,3 +16,4 @@ pip3 install ./WoeUSB-ng-0.2.12.tar.gz
 sed -i 's#urllib\.request\.urlretrieve.*#"uefi-ntfs.img"#' /usr/local/lib/python3.9/dist-packages/WoeUSB/core.py
 #sed -i 's#shutil\.move.*#download_directory="/root/slax"#' /usr/local/lib/python3.9/dist-packages/WoeUSB/core.py
 sed -i 's#shutil\.move(fileName#shutil.move("/root/slax/uefi-ntfs.img"#' /usr/local/lib/python3.9/dist-packages/WoeUSB/core.py
+sed -i.bak '/mounts = re.findall(rf'\''{device}\S*'\''\, mount)/a \        mounts = list(set(mounts)) # Added this line to remove duplicates' /usr/local/lib/python3.9/dist-packages/WoeUSB/utils.py
