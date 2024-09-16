@@ -19,9 +19,12 @@ get_top_level_device() {
   DEVICE="$1"
   TOP_DEVICE=$(lsblk -no pkname $DEVICE)
   if [ -z "$TOP_DEVICE" ]; then
-    echo "The top-level device for $DEVICE is: $DEVICE"
+    echo "The top-level device for $DEVICE is: $DEVICE" >&2
+    echo "$DEVICE"
   else
-    echo "The top-level device for $DEVICE is: /dev/$TOP_DEVICE"
+    TOP_DEVICE="/dev/$TOP_DEVICE"
+    echo "The top-level device for $DEVICE is: $TOP_DEVICE" >&2
+    echo "$TOP_DEVICE"
   fi
 }
 
